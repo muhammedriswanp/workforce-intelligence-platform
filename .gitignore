@@ -1,3 +1,9 @@
+#env
+.env
+
+#things done day by day
+updates.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
