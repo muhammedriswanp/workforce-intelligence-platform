@@ -2,7 +2,8 @@
 .env
 
 #things done day by day
-updates.txt
+updates.md
+comands.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

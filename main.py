@@ -1,6 +1,12 @@
-def main():
-    print("Hello from workforce-intelligence-platform!")
+from fastapi import FastAPI
+from app.auth.routes import router as auth_router
+from app.skills.routes import router as skills_router
 
+app = FastAPI()
 
-if __name__ == "__main__":
-    main()
+app.include_router(auth_router)
+app.include_router(skills_router)
+@app.get("/")
+def root():
+    return {"message": "Workforce Intelligence Platform API"}
+
