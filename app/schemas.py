@@ -86,3 +86,14 @@ class TaskResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class TaskDependencyCreate(BaseModel):
+    prerequisite_task_id: int
+
+
+class TaskDependencyResponse(BaseModel):
+    id: int
+    task_id: int
+    prerequisite_task_id: int
+
+    class Config:
+        from_attributes = True
