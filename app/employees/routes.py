@@ -3,9 +3,9 @@ from app.database import SessionLocal
 from app.schemas import EmployeeResponse, EmployeeCreate
 from sqlalchemy.orm import Session
 from app.auth.dependencies import get_current_manager, get_current_user
-from app.models import Employee, User
-from sqlalchemy import select
-from app.schemas import EmployeeSkillResponse, EmployeeSkillAssign
+from app.models import Employee, User, Assignment
+from sqlalchemy import select, func
+from app.schemas import EmployeeSkillResponse, EmployeeSkillAssign, WorkloadResponse, AvailabilityResponse
 from app.models import Skill, EmployeeSkill
 
 router = APIRouter(prefix="/employees", tags=["Employees"])
@@ -152,3 +152,70 @@ def get_employee_skills(
         }
         for item in results
     ]
+
+@router.get("/{id}/workload", response_model=WorkloadResponse)
+def get_employee_workload(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    employee = db.get(Employee, id)
+    if not employee:
+        raise HTTPException(status_code=404, detail=f"Employee with id {id} not found")
+
+    # Sum all active assignment hours directly from database
+    total_hours = db.execute(
+        select(func.coalesce(func.sum(Assignment.allocated_hours), 0.0)).where(
+            Assignment.employee_id == id,
+            Assignment.status == "active"
+        )
+    ).scalar_one()
+
+    # Prevent division by zero
+    capacity = employee.weekly_capacity if employee.weekly_capacity > 0 else 40.0
+    workload_pct = round((total_hours / capacity) * 100, 2)
+
+    # Determine status
+    if workload_pct > 100:
+        status_label = "overloaded"
+    elif workload_pct >= 70:
+        status_label = "optimal"
+    else:
+        status_label = "underloaded"
+
+    return {
+        "employee_id": employee.id,
+        "weekly_capacity": capacity,
+        "total_allocated_hours": total_hours,
+        "workload_percentage": workload_pct,
+        "status": status_label,
+    }
+
+@router.get("/{id}/availability", response_model=AvailabilityResponse)
+def get_employee_availability(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    employee = db.get(Employee, id)
+    if not employee:
+        raise HTTPException(status_code=404, detail=f"Employee with id {id} not found")
+
+    total_hours = db.execute(
+        select(func.coalesce(func.sum(Assignment.allocated_hours), 0.0)).where(
+            Assignment.employee_id == id,
+            Assignment.status == "active"
+        )
+    ).scalar_one()
+
+    capacity = employee.weekly_capacity if employee.weekly_capacity > 0 else 40.0
+    available_hrs = max(0.0, capacity - total_hours)
+    remaining_pct = max(0.0, round((available_hrs / capacity) * 100, 2))
+
+    return {
+        "employee_id": employee.id,
+        "weekly_capacity": capacity,
+        "available_hours": available_hrs,
+        "remaining_capacity_percentage": remaining_pct,
+        "is_available": available_hrs > 0,
+    }

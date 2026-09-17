@@ -1,11 +1,13 @@
 from fastapi import APIRouter, status, Depends, HTTPException
 from sqlalchemy.orm import Session 
 from app.database import SessionLocal
-from app.schemas import TaskResponse, TaskCreate, TaskDependencyCreate, TaskDependencyResponse
+from app.schemas import TaskResponse, TaskCreate, TaskDependencyCreate, TaskDependencyResponse, CandidateMatchResponse
 from app.auth.dependencies import get_current_user, get_current_manager
-from app.models import Project, Task
-from sqlalchemy import select
+from app.models import Project, Task, Employee, Assignment, EmployeeSkill
+from sqlalchemy import select, func
 from app.models.task_dependency import TaskDependency
+from app.services.matching import calculate_employee_score
+
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
@@ -145,4 +147,42 @@ def get_task_dependencies(
 
     statement = select(TaskDependency).where(TaskDependency.task_id == id)
     return db.execute(statement).scalars().all()
+
+@router.get("/{id}/candidates", response_model=list[CandidateMatchResponse])
+def get_task_candidates(
+    id: int,
+    db: Session = Depends(get_db),
+    current_manager=Depends(get_current_manager),
+):
+    task = db.get(Task, id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    employees = db.execute(select(Employee)).scalars().all()
+    candidates = []
+
+    for emp in employees:
+        # Sum active allocated hours
+        total_hours = db.execute(
+            select(func.coalesce(func.sum(Assignment.allocated_hours), 0.0)).where(
+                Assignment.employee_id == emp.id,
+                Assignment.status == "active"
+            )
+        ).scalar_one()
+
+        emp_skills = db.execute(
+            select(EmployeeSkill).where(EmployeeSkill.employee_id == emp.id)
+        ).scalars().all()
+
+        match_data = calculate_employee_score(
+            employee=emp,
+            task=task,
+            employee_skills=emp_skills,
+            total_allocated_hours=total_hours,
+        )
+        candidates.append(match_data)
+
+    # Sort descending by final score
+    candidates.sort(key=lambda c: c["final_score"], reverse=True)
+    return candidates
 

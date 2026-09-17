@@ -97,3 +97,49 @@ class TaskDependencyResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class AssignmentCreate(BaseModel):
+    task_id: int
+    employee_id: int
+    allocated_hours: float
+
+
+class AssignmentResponse(BaseModel):
+    id: int
+    task_id: int
+    employee_id: int
+    allocated_hours: float
+    status: str
+    assigned_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class WorkloadResponse(BaseModel):
+    employee_id: int
+    weekly_capacity: float
+    total_allocated_hours: float
+    workload_percentage: float
+    status: str  # "underloaded", "optimal", "overloaded"
+
+
+class AvailabilityResponse(BaseModel):
+    employee_id: int
+    weekly_capacity: float
+    available_hours: float
+    remaining_capacity_percentage: float
+    is_available: bool
+
+class CandidateMetricBreakdown(BaseModel):
+    skill_score: float
+    availability_score: float
+    workload_score: float
+    experience_score: float
+
+
+class CandidateMatchResponse(BaseModel):
+    employee_id: int
+    designation: str
+    experience_years: int
+    final_score: float
+    metrics: CandidateMetricBreakdown
