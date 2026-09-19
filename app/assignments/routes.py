@@ -6,8 +6,7 @@ from app.auth.dependencies import get_current_manager, get_current_user
 router = APIRouter(prefix="/assignments", tags=["Assignments"])
 from app.models import Task, Employee, Assignment
 from sqlalchemy import select
-
-
+from app.services.assignment_service import create_or_approve_assignment
 
 def get_db():
     db = SessionLocal()
@@ -91,3 +90,11 @@ def get_employee_assignments(
         .order_by(Assignment.id)
     )
     return db.execute(statement).scalars().all()
+
+@router.post("/approve", response_model=AssignmentResponse, status_code=status.HTTP_201_CREATED)
+def approve_assignment(
+    assignment_data: AssignmentCreate,
+    db: Session = Depends(get_db),
+    current_manager=Depends(get_current_manager),
+):
+    return create_or_approve_assignment(db=db, assignment_data=assignment_data)
