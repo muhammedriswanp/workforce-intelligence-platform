@@ -31,6 +31,7 @@ class EmployeeCreate(BaseModel):
 class EmployeeResponse(BaseModel):
     id: int
     user_id: int
+    name: Optional[str] = None
     designation: str
     experience_years: int
     weekly_capacity: float
@@ -139,6 +140,7 @@ class CandidateMetricBreakdown(BaseModel):
 
 class CandidateMatchResponse(BaseModel):
     employee_id: int
+    name: Optional[str] = None
     designation: str
     experience_years: int
     final_score: float
