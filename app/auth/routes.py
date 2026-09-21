@@ -59,6 +59,8 @@ def login(user: OAuth2PasswordRequestForm = Depends()):
     access_token = create_access_token(
         user_id=db_user.id,
         role=db_user.role,
+        name=db_user.name,
+        email=db_user.email,
     )
 
     return {

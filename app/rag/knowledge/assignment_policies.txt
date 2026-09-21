@@ -1,0 +1,5 @@
+Workforce Assignment Policies:
+- Maximum Workload: No employee should be assigned more than 40 hours per week. Any workload above 32 hours (80%) is considered high risk.
+- Critical Architecture: Tasks marked with high complexity or involving core databases (PostgreSQL migrations, authentication changes) must be assigned to an engineer with Senior designation or at least 3 years of experience.
+- Skill Gaps: An employee missing more than 50% of required technical skills may only be assigned if their available hours exceed 25 hours per week to allow adequate time for training and onboarding.
+- Single Assignment Limit: Do not assign more than two active concurrent projects to any single employee.

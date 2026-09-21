@@ -1,0 +1,5 @@
+Engineering Role Guidelines:
+- Backend Engineer: Responsible for APIs, database design, migrations, security, and authentication. Expected primary skills include Python, FastAPI, PostgreSQL, and SQLAlchemy.
+- Frontend Engineer: Responsible for user interfaces, state management, and user experience. Expected primary skills include React, TypeScript, and CSS frameworks.
+- Full Stack Engineer: Coordinates frontend and backend integration. Must possess working competence across both API design and frontend UI development.
+- DevOps / Infrastructure: Responsible for CI/CD pipelines, Docker containerization, and database hosting.

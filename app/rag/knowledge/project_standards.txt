@@ -1,0 +1,4 @@
+Internal Project Standards:
+- Code Quality: Every new backend endpoint must include Pydantic input validation and response schemas.
+- Human-in-the-Loop Principle: AI recommendations are advisory only. No task assignment can be finalized without explicit manager review and approval.
+- Database Transactions: Database write operations must use transactional sessions with proper error handling and connection teardown.
