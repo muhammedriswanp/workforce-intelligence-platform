@@ -56,6 +56,13 @@ def list_employees(
 ):
     statement = select(Employee).order_by(Employee.id)
     employees = db.execute(statement).scalars().all()
+    user_ids = [e.user_id for e in employees]
+    names = {}
+    if user_ids:
+        users = db.execute(select(User).where(User.id.in_(user_ids))).scalars().all()
+        names = {u.id: u.name for u in users}
+    for e in employees:
+        e.name = names.get(e.user_id)
     return employees
 
 @router.get("/{id}", response_model=EmployeeResponse)
@@ -70,6 +77,8 @@ def get_employee(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Employee not found",
         )
+    user = db.get(User, employee.user_id)
+    employee.name = user.name if user else None
     return employee
 
 @router.post("/{id}/skills", response_model=EmployeeSkillResponse, status_code=status.HTTP_201_CREATED)

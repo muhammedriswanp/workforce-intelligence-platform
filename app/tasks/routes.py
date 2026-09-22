@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.schemas import TaskResponse, TaskCreate, TaskDependencyCreate, TaskDependencyResponse, CandidateMatchResponse
 from app.auth.dependencies import get_current_user, get_current_manager
-from app.models import Project, Task, Employee, Assignment, EmployeeSkill
+from app.models import Project, Task, Employee, Assignment, EmployeeSkill, User
 from sqlalchemy import select, func
 from app.models.task_dependency import TaskDependency
 from app.services.matching import calculate_employee_score
@@ -159,6 +159,9 @@ def get_task_candidates(
         raise HTTPException(status_code=404, detail="Task not found")
 
     employees = db.execute(select(Employee)).scalars().all()
+    user_names = {
+        u.id: u.name for u in db.execute(select(User)).scalars().all()
+    }
     candidates = []
 
     for emp in employees:
@@ -180,6 +183,7 @@ def get_task_candidates(
             employee_skills=emp_skills,
             total_allocated_hours=total_hours,
         )
+        match_data["name"] = user_names.get(emp.user_id)
         candidates.append(match_data)
 
     # Sort descending by final score
