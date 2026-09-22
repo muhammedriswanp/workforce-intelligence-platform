@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.schemas import UserCreate, UserLogin
+from app.schemas import UserCreate, UserLogin, UserResponse
 from app.password_utils import hash_password, verify_password
 from app.models.user import User
 from app.database import SessionLocal
@@ -74,6 +74,15 @@ def get_me(current_user=Depends(get_current_user)):
         "message": "You are authenticated",
         "user": current_user,
     }
+
+@router.get("/users", response_model=list[UserResponse])
+def list_users(current_user=Depends(get_current_manager)):
+    db = SessionLocal()
+    try:
+        users = db.execute(select(User).order_by(User.id)).scalars().all()
+        return users
+    finally:
+        db.close()
 
 @router.get("/manager-only")
 def manager_dashboard(current_user=Depends(get_current_manager)):
