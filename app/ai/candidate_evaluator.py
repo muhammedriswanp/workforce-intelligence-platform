@@ -4,6 +4,7 @@ from sqlalchemy import select
 from app.models import Employee, User, Skill, EmployeeSkill
 from app.ai.task_analyzer import llm
 from app.rag.retriever import retrieve_relevant_policies
+from app.ai.llm_reasoning import generate_recommendation_explanation
 
 
 def evaluate_candidates_for_task(
@@ -13,14 +14,13 @@ def evaluate_candidates_for_task(
 
     query = f"{analysis.role} {' '.join(analysis.skills)} {analysis.complexity}"
     policies = retrieve_relevant_policies(query, k=3)
-    policy_context = "\n".join([f"- {p}" for p in policies]) if policies else "None"
+    policy_context = "\n".join([f"- {p}" for p in policies]) if policies else "Standard assignment rules apply."
     
     # 1. Fetch all employees with their user account and skills
     employees = db.execute(select(Employee)).scalars().all()
     if not employees:
         return []
 
-    required_skills_set = {s.strip().lower() for s in analysis.skills}
     candidates = []
 
     for emp in employees:
@@ -68,31 +68,20 @@ def evaluate_candidates_for_task(
 
     # 4. Generate LLM explanations for top matches
     evaluated_recommendations = []
-    for cand in candidates[:3]:  # Top 3 candidates
-        explanation_prompt = f"""
-        You are an AI workforce assignment assistant.
-        Provide a concise 1-2 sentence justification for recommending this candidate for the task.
-        
-        Organizational Policies & Guidelines:
-        {policy_context}
-
-        Task Requirements:
-        - Required Role: {analysis.role}
-        - Required Skills: {', '.join(analysis.skills)}
-        - Complexity: {analysis.complexity}
-
-        Candidate Profile:
-        - Name: {cand['name']}
-        - Designation: {cand['designation']}
-        - Matched Skills: {', '.join(cand['matched_skills']) if cand['matched_skills'] else 'None'}
-        - Available Hours: {cand['available_hours']} hrs / {cand['weekly_capacity']} hrs
-        - Calculated Match Score: {cand['match_score']}%
-
-        Verify that the candidate complies with organizational policies and explain why they are a good match.
-        Keep the explanation brief, professional, and direct.
-        """
-        response = llm.invoke(explanation_prompt)
-        explanation_text = response.content if hasattr(response, "content") else str(response)
+    for cand in candidates[:3]:
+        reason = generate_recommendation_explanation(
+            candidate_name=cand["name"],
+            designation=cand["designation"],
+            matched_skills=cand["matched_skills"],
+            missing_skills=cand["missing_skills"],
+            available_hours=cand["available_hours"],
+            weekly_capacity=cand["weekly_capacity"],
+            match_score=cand["match_score"],
+            task_role=analysis.role,
+            task_skills=analysis.skills,
+            task_complexity=analysis.complexity,
+            policy_context=policy_context,
+        )
 
         evaluated_recommendations.append(
             CandidateRecommendation(
@@ -105,9 +94,8 @@ def evaluate_candidates_for_task(
                 weekly_capacity=cand["weekly_capacity"],
                 current_workload=cand["current_workload"],
                 available_hours=cand["available_hours"],
-                reason=explanation_text.strip()
+                reason=reason,
             )
         )
 
     return evaluated_recommendations
-
