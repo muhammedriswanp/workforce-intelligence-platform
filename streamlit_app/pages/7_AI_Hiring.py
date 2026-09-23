@@ -8,6 +8,14 @@ apply_theme()
 render_sidebar()
 require_role("manager")
 
+
+def ai_unavailable():
+    st.error(
+        "The AI provider is currently unavailable (Groq returned an access error). "
+        "This is usually caused by a revoked or restricted GROQ_API_KEY, or the network blocking the Groq endpoint. "
+        "Until it's fixed, use **Tasks → Run candidate matching** for deterministic, database-powered candidate ranking."
+    )
+
 page_header("🤖", "AI Hiring Assistant", "Analyze task descriptions and get ranked candidate recommendations")
 
 st.markdown("")
@@ -46,6 +54,7 @@ with tab_analyze:
                         st.markdown(" ".join(tag(s, "intermediate") for s in data["skills"]), unsafe_allow_html=True)
                 else:
                     st.error(f"Analysis failed: {res.text}")
+                    ai_unavailable()
 
 with tab_recommend:
     st.markdown('<div class="card"><div class="card-title">Recommend Candidates</div>'
@@ -107,3 +116,4 @@ with tab_recommend:
                         st.caption("No recommendations returned.")
                 else:
                     st.error(f"Recommendation failed: {res.text}")
+                    ai_unavailable()

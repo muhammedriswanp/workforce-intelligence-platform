@@ -6,6 +6,7 @@ from app.projects.routes import router as projects_router
 from app.tasks.routes import router as tasks_router
 from app.assignments.routes import router as assignments_router
 from app.ai.routes import router as ai_router
+from app.agent.routes import router as agent_router
 
 
 app = FastAPI(title="Workforce Intelligence Platform")
@@ -17,6 +18,7 @@ app.include_router(projects_router)
 app.include_router(tasks_router)
 app.include_router(assignments_router)
 app.include_router(ai_router)
+app.include_router(agent_router)
 
 @app.get("/")
 def root():

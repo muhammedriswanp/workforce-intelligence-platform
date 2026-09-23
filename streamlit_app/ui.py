@@ -295,6 +295,7 @@ def sidebar_profile():
     if st.sidebar.button("Logout", use_container_width=True, key="sidebar_logout"):
         for key in ("token", "role", "user_id", "name", "email"):
             st.session_state[key] = None
+        st.session_state["auth_view"] = "login"
         try:
             st.switch_page("app.py")
         except Exception:
