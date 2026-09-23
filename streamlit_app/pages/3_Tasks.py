@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 from api_client import api_post, clear_cache, get_projects, get_tasks_for_project
-from api_client import get_task_candidates, get_task_dependencies
+from api_client import get_task_candidates, get_task_dependencies, get_assignments
 from ui import apply_theme, page_header, kpi, section_title, status_pill, score_bar, display_name
 from ui import require_role, render_sidebar, is_manager
 
@@ -116,10 +116,21 @@ with match_col:
         candidates = st.session_state.get(f"candidates_{task_id}")
         if candidates:
             candidates = sorted(candidates, key=lambda c: c["final_score"], reverse=True)
-            for cand in candidates[:5]:
+            active_assignments = {
+                (a["task_id"], a["employee_id"])
+                for a in get_assignments()
+                if a.get("status") == "active"
+            }
+
+            st.caption("Ranking is an AI suggestion — you may review and approve any candidate below.")
+            if st.button("🗑️ Clear ranking", use_container_width=True, key=f"clear_ranking_{task_id}"):
+                st.session_state[f"candidates_{task_id}"] = None
+                st.rerun()
+            st.markdown("")
+
+            for rank, cand in enumerate(candidates[:5], start=1):
                 c = cand["employee_id"]
                 with st.container(border=True):
-                    rank = candidates.index(cand) + 1
                     col_a, col_b = st.columns([2, 3])
                     with col_a:
                         st.markdown(f"**#{rank} · {display_name(cand)}**")
@@ -139,37 +150,53 @@ with match_col:
                             ),
                             unsafe_allow_html=True,
                         )
-                    if is_manager() and rank == 1:
-                        approve_col = st.columns(3)
-                        with approve_col[0]:
-                            hours = st.number_input(
-                                "Hours to allocate",
-                                min_value=1.0,
-                                max_value=float(current_task.get("estimated_hours", 40) or 40),
-                                value=float(current_task.get("estimated_hours", 20) or 20),
-                                key=f"hours_{task_id}_{c}",
-                            )
-                        with approve_col[1]:
-                            if st.button(f"✅ Approve #{cand['employee_id']}", key=f"ok_{task_id}_{c}"):
-                                res = api_post(
-                                    "/assignments/approve",
-                                    {
-                                        "task_id": task_id,
-                                        "employee_id": cand["employee_id"],
-                                        "allocated_hours": hours,
-                                    },
+
+                    if is_manager():
+                        if (task_id, c) in active_assignments:
+                            st.info("Already actively assigned to this task.")
+                        else:
+                            est_hours = max(1.0, float(current_task.get("estimated_hours", 40) or 40))
+                            act_col, cnfr_col, btn_col = st.columns([2, 2, 1.5])
+                            with act_col:
+                                hours = st.number_input(
+                                    "Hours to allocate",
+                                    min_value=1.0,
+                                    max_value=est_hours,
+                                    value=min(est_hours, 20.0),
+                                    step=1.0,
+                                    key=f"hours_{task_id}_{c}",
                                 )
-                                if res.status_code in (200, 201):
-                                    clear_cache()
-                                    st.session_state[f"candidates_{task_id}"] = None
-                                    st.success("Assignment approved — workload is now live.")
-                                    st.rerun()
-                                else:
-                                    st.error(f"Approval failed: {res.text}")
-                        with approve_col[2]:
-                            if st.button("🗑️ Clear", key=f"clr_{task_id}_{c}"):
-                                st.session_state[f"candidates_{task_id}"] = None
-                                st.rerun()
+                            with cnfr_col:
+                                confirm = st.checkbox(
+                                    f"Confirm {display_name(cand).split()[0] if display_name(cand) else cand}",
+                                    key=f"confirm_{task_id}_{c}",
+                                )
+                            with btn_col:
+                                if st.button(
+                                    f"✅ Approve #{c}",
+                                    key=f"ok_{task_id}_{c}",
+                                    disabled=not confirm,
+                                    use_container_width=True,
+                                ):
+                                    res = api_post(
+                                        "/assignments/approve",
+                                        {
+                                            "task_id": task_id,
+                                            "employee_id": c,
+                                            "allocated_hours": hours,
+                                        },
+                                    )
+                                    if res.status_code in (200, 201):
+                                        clear_cache()
+                                        st.session_state[f"candidates_{task_id}"] = None
+                                        st.success("Assignment approved — workload is now live.")
+                                        st.rerun()
+                                    else:
+                                        try:
+                                            detail = res.json().get("detail", res.text)
+                                        except Exception:
+                                            detail = res.text
+                                        st.error(f"Approval failed: {detail}")
         else:
             st.warning("No candidates found. Make sure employees exist with skills.")
 

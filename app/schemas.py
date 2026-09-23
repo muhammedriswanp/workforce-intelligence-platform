@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Literal, Optional, List, Any
 from datetime import datetime
 
@@ -197,3 +197,13 @@ class AssignmentRejectionRequest(BaseModel):
     task_id: int
     employee_id: int
     reason: str
+
+class TaskProposal(BaseModel):
+    title: str = Field(description="Clear, actionable title of the task")
+    description: str = Field(description="Brief explanation of work to be performed")
+    estimated_hours: float = Field(description="Estimated hours (e.g. 10.0 to 40.0)")
+    required_skills: List[str] = Field(description="Key skills required (e.g. ['Python', 'FastAPI'])")
+
+class ProjectDecompositionResponse(BaseModel):
+    project_id: int
+    proposed_tasks: List[TaskProposal] = Field(description="Maximum 10 broken down tasks")
