@@ -1,6 +1,6 @@
 import pandas as pd
 import streamlit as st
-from api_client import get_projects, get_tasks_for_project, get_task_dependencies
+from api_client import get_employees, get_projects, get_tasks_for_project, get_task_dependencies
 from ui import apply_theme, page_header, kpi, section_title
 from ui import require_role, render_sidebar
 
@@ -8,6 +8,22 @@ st.set_page_config(page_title="View Tasks", layout="wide")
 apply_theme()
 render_sidebar()
 require_role("employee")
+
+if st.session_state.get("role") != "employee":
+    st.error("This area is for employees only. Managers should use the manager workspace.")
+    st.stop()
+
+employees = get_employees()
+my_emp = next(
+    (e for e in employees if e.get("user_id") == st.session_state.get("user_id")),
+    None,
+)
+if not my_emp:
+    st.info(
+        "No employee profile is linked to your account yet. "
+        "Ask a manager to link your user account to an employee record on the Employees page."
+    )
+    st.stop()
 
 page_header("✅", "View Tasks", "Browse projects and tasks (read-only)")
 

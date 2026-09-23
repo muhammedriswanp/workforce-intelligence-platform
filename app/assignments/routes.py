@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status, Depends, HTTPException
 from app.database import SessionLocal
-from app.schemas import AssignmentResponse, AssignmentCreate
+from app.schemas import AssignmentResponse, AssignmentCreate, AssignmentRejectionRequest
 from sqlalchemy.orm import Session
 from app.auth.dependencies import get_current_manager, get_current_user
 router = APIRouter(prefix="/assignments", tags=["Assignments"])
@@ -93,8 +93,86 @@ def get_employee_assignments(
 
 @router.post("/approve", response_model=AssignmentResponse, status_code=status.HTTP_201_CREATED)
 def approve_assignment(
-    assignment_data: AssignmentCreate,
+    payload: AssignmentCreate,
     db: Session = Depends(get_db),
-    current_manager=Depends(get_current_manager),
+    current_manager = Depends(get_current_manager),
 ):
-    return create_or_approve_assignment(db=db, assignment_data=assignment_data)
+    """
+    Validates capacity, sets status to 'active', and creates the assignment.
+    """
+    task = db.get(Task, payload.task_id)
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Task {payload.task_id} not found",
+        )
+
+    employee = db.get(Employee, payload.employee_id)
+    if not employee:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Employee {payload.employee_id} not found",
+        )
+
+    # Prevent duplicate active assignment for the same task
+    existing_assignment = db.query(Assignment).filter(
+        Assignment.task_id == payload.task_id,
+        Assignment.status == "active"
+    ).first()
+    if existing_assignment:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="An active assignment already exists for this task",
+        )
+
+    # Enforce capacity constraint deterministically
+    if employee.current_workload + payload.allocated_hours > employee.weekly_capacity:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Cannot assign: employee capacity exceeded. "
+                f"Current workload: {employee.current_workload}h, "
+                f"Allocated: {payload.allocated_hours}h, "
+                f"Weekly capacity: {employee.weekly_capacity}h"
+            ),
+        )
+
+    new_assignment = Assignment(
+        task_id=payload.task_id,
+        employee_id=payload.employee_id,
+        allocated_hours=payload.allocated_hours,
+        status="active",
+    )
+    db.add(new_assignment)
+
+    # Update state
+    employee.current_workload += payload.allocated_hours
+    task.status = "in_progress"
+
+    db.commit()
+    db.refresh(new_assignment)
+    return new_assignment
+
+
+@router.post("/reject", status_code=status.HTTP_200_OK)
+def reject_assignment(
+    payload: AssignmentRejectionRequest,
+    db: Session = Depends(get_db),
+    current_manager = Depends(get_current_manager),
+):
+    """
+    Acknowledges the rejection without modifying database state or capacity.
+    """
+    task = db.get(Task, payload.task_id)
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Task {payload.task_id} not found",
+        )
+
+    return {
+        "message": "Recommendation rejected by manager.",
+        "task_id": payload.task_id,
+        "employee_id": payload.employee_id,
+        "reason": payload.reason,
+    }

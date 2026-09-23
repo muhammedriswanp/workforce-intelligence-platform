@@ -23,20 +23,39 @@ if "name" not in st.session_state:
 if "email" not in st.session_state:
     st.session_state.email = None
 
+if "auth_view" not in st.session_state:
+    st.session_state.auth_view = "login"
+
 if not st.session_state.token:
     hero(
         "Workforce Intelligence Platform",
         "AI-powered workforce, skill and workload management",
     )
 
-    left, right = st.columns(2, gap="large")
+    st.markdown(
+        '<style>'
+        ".auth-wrap { max-width: 520px; margin: 0 auto; }"
+        ".auth-panel header { display:flex; align-items:center; gap:6px; margin-bottom: 4px; }"
+        ".auth-panel .auth-icon { font-size: 1.15rem; }"
+        ".auth-panel h2 { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.01em; }"
+        ".auth-switch { margin-top: 16px; text-align: center; }"
+        ".auth-switch p { color: #94a3b8; font-size: 0.85rem; margin: 0 0 6px; }"
+        "</style>",
+        unsafe_allow_html=True,
+    )
 
-    with left:
-        st.markdown('<div class="card"><div class="card-title">Sign in</div>', unsafe_allow_html=True)
+    st.markdown('<div class="auth-wrap">', unsafe_allow_html=True)
+
+    if st.session_state.auth_view == "login":
+        st.markdown(
+            '<div class="card auth-panel"><div class="card-title">'
+            '<span class="auth-icon">🔐</span> &nbsp;Sign in to your account</div>',
+            unsafe_allow_html=True,
+        )
         with st.form("login_form"):
             email = st.text_input("Email", placeholder="you@company.com")
             password = st.text_input("Password", type="password", placeholder="••••••••")
-            submitted = st.form_submit_button("Sign In", use_container_width=True)
+            submitted = st.form_submit_button("Sign In", use_container_width=True, type="primary")
         st.markdown("</div>", unsafe_allow_html=True)
 
         if submitted:
@@ -58,14 +77,26 @@ if not st.session_state.token:
                 else:
                     st.error("Invalid email or password.")
 
-    with right:
-        st.markdown('<div class="card"><div class="card-title">Create an account</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="auth-switch"><p>New to the platform?</p></div>',
+            unsafe_allow_html=True,
+        )
+        if st.button("Create an account", use_container_width=True, key="goto_register"):
+            st.session_state.auth_view = "register"
+            st.rerun()
+
+    else:
+        st.markdown(
+            '<div class="card auth-panel"><div class="card-title">'
+            '<span class="auth-icon">✨</span> &nbsp;Create an account</div>',
+            unsafe_allow_html=True,
+        )
         with st.form("register_form"):
             name = st.text_input("Full name", placeholder="John Doe")
             reg_email = st.text_input("Email", placeholder="john@company.com")
             reg_password = st.text_input("Password", type="password")
             role = st.selectbox("Role", ["employee", "manager"])
-            reg_submitted = st.form_submit_button("Create Account", use_container_width=True)
+            reg_submitted = st.form_submit_button("Create Account", use_container_width=True, type="primary")
         st.markdown("</div>", unsafe_allow_html=True)
 
         if reg_submitted:
@@ -74,9 +105,21 @@ if not st.session_state.token:
             else:
                 res = register_user(name, reg_email, reg_password, role)
                 if res.status_code in (200, 201):
-                    st.success("Account created. Sign in above to continue.")
+                    st.session_state.auth_view = "login"
+                    st.success("Account created. Sign in to continue.")
+                    st.rerun()
                 else:
                     st.error(f"Registration failed: {res.text}")
+
+        st.markdown(
+            '<div class="auth-switch"><p>Already have an account?</p></div>',
+            unsafe_allow_html=True,
+        )
+        if st.button("Back to sign in", use_container_width=True, key="goto_login"):
+            st.session_state.auth_view = "login"
+            st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 else:
     employees = get_employees()
@@ -127,33 +170,33 @@ else:
                 section_title("My skills")
                 names = [s.get("name") or s.get("skill_name") for s in skills]
                 st.markdown(" ".join(tag(n) for n in names), unsafe_allow_html=True)
+
+            st.markdown("")
+            section_title("Quick actions")
+            q1, q2 = st.columns(2, gap="small")
+            with q1:
+                st.page_link("pages/1_My_Workspace.py", label="🏠 &nbsp; My workspace", use_container_width=True)
+            with q2:
+                st.page_link("pages/2_View_Tasks.py", label="✅ &nbsp; View tasks", use_container_width=True)
+
+            st.markdown("")
+            section_title("What you can do")
+            st.markdown(
+                '<div class="steps">'
+                "<div class='step'><div class='step-num'>Track</div><div class='step-title'>Your workload</div>"
+                "<div class='step-desc'>See allocated hours, availability and your current status at a glance.</div></div>"
+                "<div class='step'><div class='step-num'>Review</div><div class='step-title'>Your assignments</div>"
+                "<div class='step-desc'>Every task you are assigned, with hours and approval status.</div></div>"
+                "<div class='step'><div class='step-num'>Browse</div><div class='step-title'>See tasks</div>"
+                "<div class='step-desc'>Explore projects and their tasks in a read-only view.</div></div>"
+                "</div>",
+                unsafe_allow_html=True,
+            )
         else:
             st.info(
                 "No employee profile is linked to your account yet. "
                 "Ask a manager to link your user account to an employee record on the Employees page."
             )
-
-        st.markdown("")
-        section_title("Quick actions")
-        q1, q2 = st.columns(2, gap="small")
-        with q1:
-            st.page_link("pages/1_My_Workspace.py", label="🏠 &nbsp; My workspace", use_container_width=True)
-        with q2:
-            st.page_link("pages/2_View_Tasks.py", label="✅ &nbsp; View tasks", use_container_width=True)
-
-        st.markdown("")
-        section_title("What you can do")
-        st.markdown(
-            '<div class="steps">'
-            "<div class='step'><div class='step-num'>Track</div><div class='step-title'>Your workload</div>"
-            "<div class='step-desc'>See allocated hours, availability and your current status at a glance.</div></div>"
-            "<div class='step'><div class='step-num'>Review</div><div class='step-title'>Your assignments</div>"
-            "<div class='step-desc'>Every task you are assigned, with hours and approval status.</div></div>"
-            "<div class='step'><div class='step-num'>Browse</div><div class='step-title'>See tasks</div>"
-            "<div class='step-desc'>Explore projects and their tasks in a read-only view.</div></div>"
-            "</div>",
-            unsafe_allow_html=True,
-        )
         st.stop()
 
     section_title("Workspace at a glance")
