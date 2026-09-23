@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Literal, Optional, List
+from typing import Literal, Optional, List, Any
 from datetime import datetime
 
 class UserCreate(BaseModel):
@@ -180,3 +180,20 @@ class TaskRecommendationResponse(BaseModel):
     required_skills: List[str]
     complexity: str
     recommendations: List[CandidateRecommendation]
+
+
+class TaskRecommendationRequest(BaseModel):
+    task_description: str
+
+
+class TaskRecommendationResponse(BaseModel):
+    target_role: str
+    required_skills: list[str]
+    complexity: str
+    policy_context: str
+    recommendations: list[dict[str, Any]]
+
+class AssignmentRejectionRequest(BaseModel):
+    task_id: int
+    employee_id: int
+    reason: str
