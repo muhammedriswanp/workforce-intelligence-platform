@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.auth.dependencies import get_current_manager
-from app.schemas import TaskRecommendationRequest, TaskRecommendationResponse
+from app.schemas import TaskRecommendationRequest, TaskRecommendationResponse, CandidateRecommendation
 from app.agent.graph import agent_graph
 
 router = APIRouter(prefix="/agent", tags=["Agentic Workflow"])
@@ -47,5 +47,5 @@ def get_recommendations_workflow(
         required_skills=result.get("required_skills", []),
         complexity=result.get("complexity", "Medium"),
         policy_context=result.get("policy_context", ""),
-        recommendations=result.get("final_recommendations", []),
+        recommendations= result.get("final_recommendations", [])
     )

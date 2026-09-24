@@ -2,7 +2,7 @@ from fastapi import APIRouter, status, Depends, HTTPException
 from sqlalchemy import select
 from app.database import SessionLocal
 from app.models.task import Task
-from app.schemas import ProjectCreate, ProjectResponse, TaskProposal
+from app.schemas import ProjectCreate, ProjectResponse, TaskProposal, TaskResponse, BatchTaskApprovalRequest
 from sqlalchemy.orm import Session
 from app.auth.dependencies import get_current_manager, get_current_user
 from app.models.project import Project
@@ -98,3 +98,45 @@ def approve_proposed_task(
     db.commit()
     db.refresh(new_task)
     return {"message": "Task approved and created", "task_id": new_task.id}
+
+@router.post(
+    "/{project_id}/tasks/approve-all",
+    response_model=list[TaskResponse],
+    status_code=status.HTTP_201_CREATED,
+)
+def approve_all_tasks(
+    project_id: int,
+    payload: BatchTaskApprovalRequest,
+    db: Session = Depends(get_db),
+    current_manager=Depends(get_current_manager),
+):
+    project = db.get(Project, project_id)
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Project with id {project_id} not found",
+        )
+
+    if not payload.tasks:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No tasks provided for approval",
+        )
+
+    created_tasks = []
+    for proposal in payload.tasks:
+        task = Task(
+            project_id=project_id,
+            title=proposal.title,
+            description=proposal.description,
+            estimated_hours=proposal.estimated_hours,
+            status="todo",
+        )
+        db.add(task)
+        created_tasks.append(task)
+
+    db.commit()
+    for task in created_tasks:
+        db.refresh(task)
+
+    return created_tasks

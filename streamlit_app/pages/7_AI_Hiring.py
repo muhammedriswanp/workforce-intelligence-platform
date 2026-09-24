@@ -78,7 +78,7 @@ with tab_recommend:
                     data = res.json()
                     c1, c2, c3 = st.columns(3, gap="small")
                     with c1:
-                        kpi(data.get("task_role", "—"), "Required role", icon="🧑‍💻", accent="blue")
+                        kpi(data.get("target_role", "—"), "Required role", icon="🧑‍💻", accent="blue")
                     with c2:
                         kpi(data.get("complexity", "—"), "Complexity", icon="🌀", accent="amber")
                     with c3:

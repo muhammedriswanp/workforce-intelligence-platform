@@ -156,7 +156,7 @@ with match_col:
                             st.info("Already actively assigned to this task.")
                         else:
                             est_hours = max(1.0, float(current_task.get("estimated_hours", 40) or 40))
-                            act_col, cnfr_col, btn_col = st.columns([2, 2, 1.5])
+                            act_col, cnfr_col, app_col, rej_col = st.columns([2, 2, 1.5, 1.5])
                             with act_col:
                                 hours = st.number_input(
                                     "Hours to allocate",
@@ -171,7 +171,7 @@ with match_col:
                                     f"Confirm {display_name(cand).split()[0] if display_name(cand) else cand}",
                                     key=f"confirm_{task_id}_{c}",
                                 )
-                            with btn_col:
+                            with app_col:
                                 if st.button(
                                     f"✅ Approve #{c}",
                                     key=f"ok_{task_id}_{c}",
@@ -197,6 +197,29 @@ with match_col:
                                         except Exception:
                                             detail = res.text
                                         st.error(f"Approval failed: {detail}")
+                            with rej_col:
+                                if st.button(
+                                    f"❌ Reject #{c}",
+                                    key=f"rej_{task_id}_{c}",
+                                    use_container_width=True,
+                                ):
+                                    res = api_post(
+                                        "/assignments/reject",
+                                        {
+                                            "task_id": task_id,
+                                            "employee_id": c,
+                                            "reason": "Manager selected an alternative candidate.",
+                                        },
+                                    )
+                                    if res.status_code == 200:
+                                        st.warning(f"Candidate #{c} recommendation rejected.")
+                                        st.rerun()
+                                    else:
+                                        try:
+                                            detail = res.json().get("detail", res.text)
+                                        except Exception:
+                                            detail = res.text
+                                        st.error(f"Rejection failed: {detail}")
         else:
             st.warning("No candidates found. Make sure employees exist with skills.")
 

@@ -22,25 +22,3 @@ def analyze_task(
     current_user: dict = Depends(get_current_manager),
 ):
     return analyze_task_description(payload.description)
-
-@router.post("/recommend-candidates", response_model=TaskRecommendationResponse)
-def recommend_candidates(
-    payload: TaskAnalysisRequest,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_manager),
-):
-    """
-    Task Analyzer -> Database Lookup -> Skill Matcher -> Availability Checker -> Ranked Candidates
-    """
-    # 1. AI Task Analysis
-    analysis = analyze_task_description(payload.description)
-
-    # 2. Database evaluation & scoring
-    ranked_candidates = evaluate_candidates_for_task(db=db, analysis=analysis)
-
-    return TaskRecommendationResponse(
-        task_role=analysis.role,
-        required_skills=analysis.skills,
-        complexity=analysis.complexity,
-        recommendations=ranked_candidates
-    )

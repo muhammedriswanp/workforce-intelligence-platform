@@ -140,6 +140,16 @@ class AvailabilityResponse(BaseModel):
     remaining_capacity_percentage: float
     is_available: bool
 
+class CandidateCapacityCheck(BaseModel):
+    employee_id: int
+    task_id: int
+    task_estimated_hours: float
+    current_workload: float
+    weekly_capacity: float
+    projected_workload: float
+    projected_allocation_percentage: float
+    can_take_task: bool
+
 class CandidateMetricBreakdown(BaseModel):
     skill_score: float
     availability_score: float
@@ -175,13 +185,6 @@ class CandidateRecommendation(BaseModel):
     available_hours: float
     reason: str
 
-class TaskRecommendationResponse(BaseModel):
-    task_role: str
-    required_skills: List[str]
-    complexity: str
-    recommendations: List[CandidateRecommendation]
-
-
 class TaskRecommendationRequest(BaseModel):
     task_description: str
 
@@ -207,3 +210,14 @@ class TaskProposal(BaseModel):
 class ProjectDecompositionResponse(BaseModel):
     project_id: int
     proposed_tasks: List[TaskProposal] = Field(description="Maximum 10 broken down tasks")
+
+class BatchTaskApprovalRequest(BaseModel):
+    tasks: List[TaskProposal]
+
+class AssignmentActionResponse(BaseModel):
+    message: str
+    assignment_id: Optional[int] = None
+    task_id: int
+    employee_id: int
+    status: str
+

@@ -152,4 +152,4 @@ def analyze_task(description):
 
 
 def recommend_candidates(description):
-    return api_post("/ai/recommend-candidates", {"description": description})
+    return api_post("/agent/recommendations", {"task_description": description})

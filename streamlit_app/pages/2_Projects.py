@@ -85,3 +85,94 @@ for project in projects:
             st.dataframe(task_df, use_container_width=True, hide_index=True)
         else:
             st.caption("No tasks yet — add some on the Tasks page.")
+
+        st.markdown("")
+        st.subheader("🤖 AI Project Decomposition")
+        decompose_key = f"proposals_{project['id']}"
+        if st.button(
+            "Generate Tasks from Documentation",
+            use_container_width=True,
+            key=f"decompose_{project['id']}",
+        ):
+            if not (project.get("description") or "").strip():
+                st.error("Add a project description/documentation first.")
+            else:
+                with st.spinner("AI is analyzing document and breaking into tasks..."):
+                    response = api_post(f"/projects/{project['id']}/decompose", {})
+                if response.status_code == 200:
+                    st.session_state[decompose_key] = response.json()
+                else:
+                    try:
+                        detail = response.json().get("detail", response.text)
+                    except Exception:
+                        detail = response.text
+                    st.error(f"Failed to generate task breakdown: {detail}")
+
+        proposals = st.session_state.get(decompose_key)
+        if proposals:
+            col_batch, _ = st.columns([2, 3])
+            with col_batch:
+                if st.button(
+                    "Approve & Save Task Plan",
+                    key=f"batch_approve_{project['id']}",
+                    use_container_width=True,
+                ):
+                    res = api_post(
+                        f"/projects/{project['id']}/tasks/approve-all",
+                        {"tasks": proposals},
+                    )
+                    if res.status_code == 201:
+                        st.success("All tasks approved and created!")
+                        st.session_state.pop(decompose_key, None)
+                        clear_cache()
+                        st.rerun()
+                    else:
+                        st.error(f"Failed to approve tasks: {res.text}")
+            st.write(f"### Proposed Tasks ({len(proposals)})")
+            for idx, prop in enumerate(proposals):
+                with st.container(border=True):
+                    st.markdown(f"**Task {idx + 1}: {prop.get('title', '—')}**")
+                    st.write(prop.get("description", "") or "")
+                    skills = prop.get("required_skills") or []
+                    st.caption(
+                        f"Estimated: {prop.get('estimated_hours', '—')} hrs | "
+                        f"Skills: {', '.join(skills) or '—'}"
+                    )
+                    act_col, dsc_col = st.columns([2, 1])
+                    with act_col:
+                        if st.button(
+                            f"Approve & Create Task #{idx + 1}",
+                            key=f"approve_prop_{project['id']}_{idx}",
+                            use_container_width=True,
+                        ):
+                            res = api_post(
+                                f"/projects/{project['id']}/tasks/approve-proposal",
+                                prop,
+                            )
+                            if res.status_code == 201:
+                                st.success(f"Task '{prop.get('title', '')}' created in database!")
+                                proposals.pop(idx)
+                                if proposals:
+                                    st.session_state[decompose_key] = proposals
+                                else:
+                                    st.session_state.pop(decompose_key, None)
+                                clear_cache()
+                                st.rerun()
+                            else:
+                                try:
+                                    detail = res.json().get("detail", res.text)
+                                except Exception:
+                                    detail = res.text
+                                st.error(f"Approval failed: {detail}")
+                    with dsc_col:
+                        if st.button(
+                            "Discard",
+                            key=f"discard_prop_{project['id']}_{idx}",
+                            use_container_width=True,
+                        ):
+                            proposals.pop(idx)
+                            if proposals:
+                                st.session_state[decompose_key] = proposals
+                            else:
+                                st.session_state.pop(decompose_key, None)
+                            st.rerun()

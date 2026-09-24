@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status, Depends, HTTPException
 from app.database import SessionLocal
-from app.schemas import AssignmentResponse, AssignmentCreate, AssignmentRejectionRequest
+from app.schemas import AssignmentActionResponse, AssignmentResponse, AssignmentCreate, AssignmentRejectionRequest
 from sqlalchemy.orm import Session
 from app.auth.dependencies import get_current_manager, get_current_user
 router = APIRouter(prefix="/assignments", tags=["Assignments"])
@@ -118,7 +118,7 @@ def approve_assignment(
     existing_assignment = db.query(Assignment).filter(
         Assignment.task_id == payload.task_id,
         Assignment.status == "active"
-    ).first()
+    ).scalar_one_or_none()
     if existing_assignment:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -151,7 +151,13 @@ def approve_assignment(
 
     db.commit()
     db.refresh(new_assignment)
-    return new_assignment
+    return AssignmentActionResponse(
+           message="Assignment approved and created successfully.",
+           assignment_id=new_assignment.id,
+           task_id=task.id,
+           employee_id=employee.id,
+           status="approved",
+       )
 
 
 @router.post("/reject", status_code=status.HTTP_200_OK)
@@ -170,9 +176,10 @@ def reject_assignment(
             detail=f"Task {payload.task_id} not found",
         )
 
-    return {
-        "message": "Recommendation rejected by manager.",
-        "task_id": payload.task_id,
-        "employee_id": payload.employee_id,
-        "reason": payload.reason,
-    }
+    return AssignmentActionResponse(
+        message=f"Recommendation rejected: {payload.reason}",
+        assignment_id=None,
+        task_id=task.id,
+        employee_id=payload.employee_id,
+        status="rejected",
+    )
