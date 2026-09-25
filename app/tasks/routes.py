@@ -1,7 +1,8 @@
 from fastapi import APIRouter, status, Depends, HTTPException
 from sqlalchemy.orm import Session 
 from app.database import SessionLocal
-from app.schemas import TaskResponse, TaskCreate, TaskDependencyCreate, TaskDependencyResponse, CandidateMatchResponse
+from app.schemas import TaskResponse, TaskCreate, TaskDependencyCreate, TaskDependencyResponse, CandidateMatchResponse, TaskRecommendationResponse
+from app.agent.graph import agent_graph
 from app.auth.dependencies import get_current_user, get_current_manager
 from app.models import Project, Task, Employee, Assignment, EmployeeSkill, User
 from sqlalchemy import select, func
@@ -189,4 +190,44 @@ def get_task_candidates(
     # Sort descending by final score
     candidates.sort(key=lambda c: c["final_score"], reverse=True)
     return candidates
+
+@router.post("/{id}/agent-recommendations", response_model=TaskRecommendationResponse)
+def get_task_agent_recommendations(
+    id: int,
+    db: Session = Depends(get_db),
+    current_manager=Depends(get_current_manager),
+):
+    """Runs the 8-node LangGraph workflow bound to an existing task and returns ranked candidates."""
+    task = db.get(Task, id)
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Task with id {id} not found",
+        )
+
+    task_input = (
+        f"{task.title}. {task.description or ''} (Estimated hours: {task.estimated_hours}h)"
+    )
+
+    initial_state = {
+        "task_description": task_input,
+        "target_role": "",
+        "required_skills": [],
+        "complexity": "",
+        "candidate_pool": [],
+        "scored_candidates": [],
+        "policy_context": "",
+        "final_recommendations": [],
+        "error": None,
+    }
+
+    result = agent_graph.invoke(initial_state)
+
+    return TaskRecommendationResponse(
+        target_role=result.get("target_role", "Developer"),
+        required_skills=result.get("required_skills", []),
+        complexity=result.get("complexity", "Medium"),
+        policy_context=result.get("policy_context", ""),
+        recommendations=result.get("final_recommendations", []),
+    )
 
