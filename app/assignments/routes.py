@@ -91,7 +91,7 @@ def get_employee_assignments(
     )
     return db.execute(statement).scalars().all()
 
-@router.post("/approve", response_model=AssignmentResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/approve", response_model=AssignmentActionResponse, status_code=status.HTTP_201_CREATED)
 def approve_assignment(
     payload: AssignmentCreate,
     db: Session = Depends(get_db),
@@ -115,9 +115,11 @@ def approve_assignment(
         )
 
     # Prevent duplicate active assignment for the same task
-    existing_assignment = db.query(Assignment).filter(
-        Assignment.task_id == payload.task_id,
-        Assignment.status == "active"
+    existing_assignment = db.execute(
+        select(Assignment).where(
+            Assignment.task_id == payload.task_id,
+            Assignment.status == "active"
+        )
     ).scalar_one_or_none()
     if existing_assignment:
         raise HTTPException(

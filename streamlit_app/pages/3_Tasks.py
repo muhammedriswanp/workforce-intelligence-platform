@@ -106,6 +106,157 @@ with match_col:
     if not is_manager():
         st.caption("Only managers can run candidate matching.")
     else:
+        # --- LangGraph Agent Matching Block ---
+        st.markdown("### 🤖 Agentic Assignment")
+        col_ag_btn, col_ag_clear = st.columns([3, 1])
+
+        with col_ag_btn:
+            if st.button(
+                "🤖 Run LangGraph Agent",
+                type="primary",
+                use_container_width=True,
+                key=f"agent_rec_{task_id}",
+            ):
+                with st.spinner(
+                    "LangGraph agent analyzing role, skills, availability, and policies..."
+                ):
+                    res = api_post(
+                        f"/tasks/{task_id}/agent-recommendations", {}
+                    )
+                    if res.status_code == 200:
+                        st.session_state[f"agent_results_{task_id}"] = (
+                            res.json()
+                        )
+                    else:
+                        try:
+                            detail = res.json().get("detail", res.text)
+                        except Exception:
+                            detail = res.text
+                        st.error(f"Agent request failed: {detail}")
+
+        with col_ag_clear:
+            if st.session_state.get(f"agent_results_{task_id}"):
+                if st.button(
+                    "🗑️ Clear",
+                    key=f"clear_ag_{task_id}",
+                    use_container_width=True,
+                ):
+                    st.session_state.pop(f"agent_results_{task_id}", None)
+                    st.rerun()
+
+        # Render Agent Results if present
+        agent_data = st.session_state.get(f"agent_results_{task_id}")
+        if agent_data:
+            st.markdown(
+                f"**Target Role:** `{agent_data.get('target_role')}` | **Complexity:** `{agent_data.get('complexity')}`"
+            )
+            skills = agent_data.get("required_skills", [])
+            if skills:
+                st.markdown(
+                    f"**Identified Skills:** {' '.join([f'`{s}`' for s in skills])}"
+                )
+
+            if agent_data.get("policy_context"):
+                with st.expander(
+                    "📜 Applied Workforce Policy (RAG)", expanded=False
+                ):
+                    st.info(agent_data["policy_context"])
+
+            recs = agent_data.get("recommendations", [])
+            if not recs:
+                st.warning(
+                    "No matching candidates found with available capacity."
+                )
+
+            for cand in recs:
+                emp_id = cand["employee_id"]
+                with st.container(border=True):
+                    st.markdown(
+                        f"#### #{emp_id} {cand['name']} — *{cand.get('designation', 'Engineer')}*"
+                    )
+                    st.progress(
+                        int(cand.get("match_score", 0)),
+                        text=f"Match Score: {cand.get('match_score')}%",
+                    )
+                    st.write(f"💡 **AI Rationale:** {cand.get('reason', 'N/A')}")
+                    st.caption(
+                        f"Weekly Capacity: {cand.get('weekly_capacity')}h | "
+                        f"Current Workload: {cand.get('current_workload')}h | "
+                        f"Available: {cand.get('available_hours')}h"
+                    )
+
+                    default_alloc = float(
+                        min(current_task.get("estimated_hours", 20.0), 20.0)
+                    )
+                    ag_hours = st.number_input(
+                        "Hours to allocate",
+                        min_value=1.0,
+                        max_value=float(
+                            current_task.get("estimated_hours", 40.0)
+                        ),
+                        value=default_alloc,
+                        step=1.0,
+                        key=f"ag_hours_{task_id}_{emp_id}",
+                    )
+
+                    col_app, col_rej = st.columns(2)
+                    with col_app:
+                        if st.button(
+                            f"✅ Approve #{emp_id}",
+                            key=f"app_ag_{task_id}_{emp_id}",
+                            use_container_width=True,
+                        ):
+                            res = api_post(
+                                "/assignments/approve",
+                                {
+                                    "task_id": task_id,
+                                    "employee_id": emp_id,
+                                    "allocated_hours": ag_hours,
+                                },
+                            )
+                            if res.status_code in (200, 201):
+                                st.success(
+                                    f"Assigned {cand['name']} successfully!"
+                                )
+                                clear_cache()
+                                st.session_state.pop(
+                                    f"agent_results_{task_id}", None
+                                )
+                                st.rerun()
+                            else:
+                                try:
+                                    detail = res.json().get("detail", res.text)
+                                except Exception:
+                                    detail = res.text
+                                st.error(f"Approval failed: {detail}")
+
+                    with col_rej:
+                        if st.button(
+                            f"❌ Reject #{emp_id}",
+                            key=f"rej_ag_{task_id}_{emp_id}",
+                            use_container_width=True,
+                        ):
+                            res = api_post(
+                                "/assignments/reject",
+                                {
+                                    "task_id": task_id,
+                                    "employee_id": emp_id,
+                                    "reason": "Rejected by manager during LangGraph review.",
+                                },
+                            )
+                            if res.status_code == 200:
+                                st.warning(f"Candidate #{emp_id} rejected.")
+                                st.rerun()
+                            else:
+                                try:
+                                    detail = res.json().get("detail", res.text)
+                                except Exception:
+                                    detail = res.text
+                                st.error(f"Rejection failed: {detail}")
+
+        st.markdown("---")
+        st.markdown("### 📊 Deterministic Candidate Matching")
+
         if st.button("🎯 Run candidate matching", type="primary", use_container_width=True, key=f"match_{task_id}"):
             candidates = get_task_candidates(task_id)
             if candidates:
