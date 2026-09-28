@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.auth.dependencies import get_current_manager
-from app.schemas import TaskRecommendationRequest, TaskRecommendationResponse, CandidateRecommendation
+from app.agent.schemas import TaskRecommendationRequest, TaskRecommendationResponse
+from app.ai.schemas import CandidateRecommendation
 from app.agent.graph import agent_graph
 
 router = APIRouter(prefix="/agent", tags=["Agentic Workflow"])

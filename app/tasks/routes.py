@@ -1,7 +1,8 @@
 from fastapi import APIRouter, status, Depends, HTTPException
 from sqlalchemy.orm import Session 
 from app.database import SessionLocal
-from app.schemas import TaskResponse, TaskCreate, TaskDependencyCreate, TaskDependencyResponse, CandidateMatchResponse, TaskRecommendationResponse
+from app.tasks.schemas import TaskResponse, TaskCreate, TaskDependencyCreate, TaskDependencyResponse, CandidateMatchResponse
+from app.agent.schemas import TaskRecommendationResponse
 from app.agent.graph import agent_graph
 from app.auth.dependencies import get_current_user, get_current_manager
 from app.models import Project, Task, Employee, Assignment, EmployeeSkill, User

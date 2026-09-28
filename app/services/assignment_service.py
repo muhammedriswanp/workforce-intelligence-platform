@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from app.schemas import AssignmentCreate
+from app.assignments.schemas import AssignmentCreate
 from app.models import Assignment, Task, Employee
 from sqlalchemy import select
 
