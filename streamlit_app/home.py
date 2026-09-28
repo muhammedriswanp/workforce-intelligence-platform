@@ -228,4 +228,4 @@ else:
     with q4:
         st.page_link("pages/6_Assignments.py", label="📌 &nbsp; Approvals & work", use_container_width=True)
     with q5:
-        st.page_link("pages/7_AI_Hiring.py", label="🤖 &nbsp; AI Hiring", use_container_width=True)
+        st.page_link("pages/7_AI_Chat.py", label="🤖 &nbsp; AI Chat", use_container_width=True)

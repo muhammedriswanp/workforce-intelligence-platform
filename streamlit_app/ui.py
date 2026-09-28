@@ -297,7 +297,7 @@ def sidebar_profile():
             st.session_state[key] = None
         st.session_state["auth_view"] = "login"
         try:
-            st.switch_page("app.py")
+            st.switch_page("home.py")
         except Exception:
             st.rerun()
 
@@ -322,7 +322,7 @@ def build_nav():
         st.sidebar.markdown('<div class="side-head">Workspace</div>', unsafe_allow_html=True)
         if st.sidebar.button("Sign in / Create account", use_container_width=True, key="nav_signin"):
             try:
-                st.switch_page("app.py")
+                st.switch_page("home.py")
             except Exception:
                 st.rerun()
         return
@@ -336,7 +336,7 @@ def build_nav():
             ("4_Employees.py", "Employees"),
             ("5_Skills.py", "Skills"),
             ("6_Assignments.py", "Assignments"),
-            ("7_AI_Hiring.py", "AI Hiring"),
+            ("7_AI_Chat.py", "AI Chat"),
         ]
     elif role == "employee":
         links = [
