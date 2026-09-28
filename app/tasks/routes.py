@@ -210,6 +210,10 @@ def get_task_agent_recommendations(
     )
 
     initial_state = {
+        "project_title": "",
+        "project_description": task_input,
+        "project_status": "planning",
+        "project_id": None,
         "task_description": task_input,
         "target_role": "",
         "required_skills": [],

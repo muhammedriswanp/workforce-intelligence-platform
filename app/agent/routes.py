@@ -20,15 +20,20 @@ def get_recommendations_workflow(
     Availability Checker -> Workload Checker -> RAG Retrieval ->
     Candidate Ranking -> Recommendation (LLM explanation) -> END
     """
-    if not payload.task_description.strip():
+    description = payload.project_description or payload.task_description
+    if not description or not description.strip():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Task description cannot be empty",
+            detail="Project or task description cannot be empty",
         )
 
     # Prepare initial state
     initial_state = {
-        "task_description": payload.task_description,
+        "project_title": payload.project_title or "",
+        "project_description": payload.project_description or description,
+        "project_status": payload.project_status,
+        "project_id": payload.project_id,
+        "task_description": description,
         "target_role": "",
         "required_skills": [],
         "complexity": "",

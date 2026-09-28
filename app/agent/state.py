@@ -2,6 +2,10 @@ from typing import TypedDict, Any
 
 class AgentState(TypedDict):
     # 1. Inputs
+    project_title: str
+    project_description: str
+    project_status: str
+    project_id: int | None
     task_description: str
 
     # 2. Extracted Requirements (Task Analyzer)
