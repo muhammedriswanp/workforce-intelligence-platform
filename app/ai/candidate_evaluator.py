@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.schemas import TaskAnalysisResult, CandidateRecommendation
+from app.ai.schemas import TaskAnalysisResult, CandidateRecommendation
 from sqlalchemy import select
 from app.models import Employee, User, Skill, EmployeeSkill
 from app.ai.task_analyzer import llm

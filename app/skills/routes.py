@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status, Depends, HTTPException
 from app.database import SessionLocal
-from app.schemas import SkillResponse, SkillCreate
+from app.skills.schemas import SkillResponse, SkillCreate
 from sqlalchemy.orm import Session
 from app.auth.dependencies import get_current_manager, get_current_user
 from sqlalchemy import select

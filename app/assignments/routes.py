@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status, Depends, HTTPException
 from app.database import SessionLocal
-from app.schemas import AssignmentActionResponse, AssignmentResponse, AssignmentCreate, AssignmentRejectionRequest
+from app.assignments.schemas import AssignmentActionResponse, AssignmentResponse, AssignmentCreate, AssignmentRejectionRequest
 from sqlalchemy.orm import Session
 from app.auth.dependencies import get_current_manager, get_current_user
 router = APIRouter(prefix="/assignments", tags=["Assignments"])

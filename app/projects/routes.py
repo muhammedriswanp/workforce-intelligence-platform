@@ -2,7 +2,8 @@ from fastapi import APIRouter, status, Depends, HTTPException
 from sqlalchemy import select
 from app.database import SessionLocal
 from app.models.task import Task
-from app.schemas import ProjectCreate, ProjectResponse, TaskProposal, TaskResponse, BatchTaskApprovalRequest
+from app.projects.schemas import ProjectCreate, ProjectResponse, TaskProposal, BatchTaskApprovalRequest
+from app.tasks.schemas import TaskResponse
 from sqlalchemy.orm import Session
 from app.auth.dependencies import get_current_manager, get_current_user
 from app.models.project import Project

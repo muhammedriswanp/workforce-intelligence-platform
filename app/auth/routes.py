@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.schemas import UserCreate, UserLogin, UserResponse
+from app.auth.schemas import UserCreate, UserLogin, UserResponse
 from app.password_utils import hash_password, verify_password
 from app.models.user import User
 from app.database import SessionLocal

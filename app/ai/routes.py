@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from app.auth.dependencies import get_current_manager
-from app.schemas import TaskAnalysisRequest, TaskAnalysisResult, TaskRecommendationResponse
+from app.ai.schemas import TaskAnalysisRequest, TaskAnalysisResult
+from app.agent.schemas import TaskRecommendationResponse
 from app.ai.task_analyzer import analyze_task_description
 from app.database import SessionLocal
 from sqlalchemy.orm import Session

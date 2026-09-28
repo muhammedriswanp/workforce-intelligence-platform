@@ -1,11 +1,11 @@
 from fastapi import APIRouter, status, Depends, HTTPException
 from app.database import SessionLocal
-from app.schemas import EmployeeResponse, EmployeeCreate
+from app.employees.schemas import EmployeeResponse, EmployeeCreate
 from sqlalchemy.orm import Session
 from app.auth.dependencies import get_current_manager, get_current_user
 from app.models import Employee, User, Assignment
 from sqlalchemy import select, func
-from app.schemas import EmployeeSkillResponse, EmployeeSkillAssign, WorkloadResponse, AvailabilityResponse
+from app.employees.schemas import EmployeeSkillResponse, EmployeeSkillAssign, WorkloadResponse, AvailabilityResponse
 from app.models import Skill, EmployeeSkill
 
 router = APIRouter(prefix="/employees", tags=["Employees"])

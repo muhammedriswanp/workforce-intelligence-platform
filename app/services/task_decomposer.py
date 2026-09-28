@@ -1,6 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate
 from typing import List
-from app.schemas import TaskProposal, ProjectDecompositionResponse
+from app.projects.schemas import TaskProposal, ProjectDecompositionResponse
 from app.ai.task_analyzer import llm
 
 
