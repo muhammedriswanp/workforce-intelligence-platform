@@ -6,6 +6,7 @@ from fastmcp import FastMCP
 from fastmcp.client import Client
 from main import app
 from app.jwt_utils import create_access_token
+from langchain_core.chat_history import InMemoryChatMessageHistory
 
 load_dotenv()
 
@@ -29,10 +30,22 @@ class WorkforceChatAssistant:
             max_retries=2,
             api_key=os.getenv("GROQ_API_KEY")
         )
-        self.history = [SystemMessage(content=SYSTEM_PROMPT)]
+        self.history = InMemoryChatMessageHistory()
+        self.history.add_message(SystemMessage(content=SYSTEM_PROMPT))
+
+    def get_recent_history(self, max_messages=10):
+
+        messages = self.history.messages
+
+        if len(messages) <= max_messages:
+            return messages
+
+        # Keep system prompt + latest messages
+        return [messages[0]] + messages[-(max_messages - 1):]
+
 
     async def chat(self, user_input: str) -> str:
-        self.history.append(HumanMessage(content=user_input))
+        self.history.add_message(HumanMessage(content=user_input))
 
         async with Client(self.mcp) as client:
             # 1. Fetch available tools from FastMCP
@@ -55,8 +68,12 @@ class WorkforceChatAssistant:
 
             # 2. Multi-step autonomous tool execution loop (max 5 iterations per turn)
             for step in range(5):
-                response = await llm_with_tools.ainvoke(self.history)
-                self.history.append(response)
+                recent_history = self.get_recent_history(
+                    max_messages=5
+                )
+
+                response = await llm_with_tools.ainvoke(recent_history)
+                self.history.add_message(response)
 
                 # If the LLM has formulated a text response without requesting tool calls, finish
                 if not response.tool_calls:
@@ -73,7 +90,7 @@ class WorkforceChatAssistant:
                     except Exception as e:
                         content_str = f"Tool execution error: {str(e)}"
 
-                    self.history.append(
+                    self.history.add_message(
                         ToolMessage(
                             tool_call_id=tool_call["id"],
                             name=tool_name,
@@ -82,4 +99,4 @@ class WorkforceChatAssistant:
                     )
 
             # Return the latest response if loop finishes
-            return self.history[-1].content
+            return self.history.messages[-1].content
