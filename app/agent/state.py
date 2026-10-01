@@ -2,25 +2,22 @@ from typing import TypedDict, Any
 
 class AgentState(TypedDict):
     # 1. Inputs
-    project_title: str
-    project_description: str
-    project_status: str
-    project_id: int | None
     task_description: str
+    # project_id: int | None
 
-    # 2. Extracted Requirements (Task Analyzer)
+    # Task analysis
     target_role: str
     required_skills: list[str]
     complexity: str
 
-    # 3. Deterministic Pipeline Data (Candidate Finder, Skill, Availability, Workload)
+    # Candidate pipeline
     candidate_pool: list[dict[str, Any]]
     scored_candidates: list[dict[str, Any]]
 
-    # 4. RAG Knowledge Context
+    # RAG
     policy_context: str
 
-    # 5. Final Output & Reasoning
+    # Output
     final_recommendations: list[dict[str, Any]]
     error: str | None
     

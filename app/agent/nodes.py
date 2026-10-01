@@ -9,7 +9,18 @@ from app.ai.llm_reasoning import generate_recommendation_explanation
 # Node 1: Task Analyzer
 def task_analyzer_node(state: AgentState) -> dict:
     """Extracts target role, required skills, and complexity using LLM."""
-    analysis = analyze_task_description(state["task_description"])
+    description = (
+        state.get("task_description")
+        or ""
+    )
+
+    if not description.strip():
+        return {
+            "error": "No task or project description provided"
+        }
+
+    analysis = analyze_task_description(description)
+
     return {
         "target_role": analysis.role,
         "required_skills": analysis.skills,

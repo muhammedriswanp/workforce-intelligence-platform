@@ -104,12 +104,11 @@ async def stream_reply(bot, user_input, sink):
                         content=content_str,
                     )
                 )
-                yield f"\n\n> 🔧 ran `{tool_name}`\n\n"
 
 
 with st.sidebar:
     st.markdown('<div class="side-head">Conversation</div>', unsafe_allow_html=True)
-    st.caption(f"{max(0, len(history) - 1)} messages this session")
+    st.caption(f"{max(0, sum(1 for m in history[1:] if getattr(m, 'type', None) != 'tool' and str(getattr(m, 'content', '') or '').strip()))} messages this session")
     if st.button("Clear conversation", use_container_width=True, key="chat_clear"):
         st.session_state.chat_history = [SystemMessage(content=SYSTEM_PROMPT)]
         st.rerun()
@@ -118,7 +117,6 @@ AVATARS = {
     "human": "user",
     "ai": "assistant",
     "AIMessageChunk": "assistant",
-    "tool": "assistant",
     "system": "assistant",
 }
 
@@ -126,8 +124,13 @@ if chat_error := st.session_state.pop("chat_error", None):
     st.error(chat_error)
 
 for message in history[1:]:
+    if getattr(message, "type", None) == "tool":
+        continue
+    content = str(getattr(message, "content", "") or "").strip()
+    if not content:
+        continue
     with st.chat_message(AVATARS.get(getattr(message, "type", "ai"), "assistant")):
-        st.markdown(str(getattr(message, "content", "") or ""))
+        st.markdown(content)
 
 if prompt := st.chat_input("Ask about your workforce data…"):
     turn_start = len(history)
