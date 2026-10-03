@@ -24,3 +24,7 @@ app.include_router(agent_router)
 def root():
     return {"message": "Workforce Intelligence Platform API"}
 
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
+
