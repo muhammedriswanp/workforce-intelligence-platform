@@ -10,6 +10,7 @@ load_dotenv()
 llm = ChatGroq(
     model="qwen/qwen3.8-27b",
     temperature=0.0,
+    max_tokens=256,
     api_key=os.getenv("GROQ_API_KEY"),
 )
 
@@ -21,19 +22,43 @@ def analyze_task_description(description: str) -> TaskAnalysisResult:
     format_instructions = parser.get_format_instructions()
 
     prompt = f"""
-    You are an expert technical project lead.
-    Analyze the following task description and extract:
-    1. The primary job role needed.
-    2. A list of specific technical skills required.
-    3. Complexity rating ("Low", "Medium", or "High").
+    You are a technical recruiter and engineering lead.
+
+    Analyze the task and return:
+    1. The most relevant job role.
+    2. Required technical skills.
+    3. Complexity: Low, Medium, or High.
+
+    Skill rules:
+    - Prefer concrete, recognizable technologies found in job
+    descriptions, such as Python, SQL, PostgreSQL, FastAPI,
+    React, Docker, Kubernetes, Kafka, AWS, and PyTorch.
+    - Extract technologies explicitly mentioned or clearly required.
+    - Do not invent tools or technologies.
+    - Avoid abstract skills and practices such as Request Validation,
+    Microservices Architecture, Event-Driven Design, Fault Tolerance,
+    High Availability, and Error Handling.
+    - Do not replace a concept with an unmentioned technology.
+    - Return only the relevant skills, usually 3–8.
+    - Use standard technology names.
+
+    Role rules:
+    - Use a recognizable job title.
+    - Do not add seniority unless explicitly required.
+
+    Complexity:
+    - Low: simple, limited-scope task.
+    - Medium: several components or integrations.
+    - High: substantial system design or complex interactions.
 
     Task Description:
     \"\"\"{description}\"\"\"
 
     {format_instructions}
-    Respond ONLY with valid json.
-    """
 
+    Return only valid JSON matching the required schema.
+    """
+    
     response = llm.invoke(prompt)
 
     # If the response is an AIMessage, parse its content into a dictionary

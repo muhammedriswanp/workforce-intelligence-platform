@@ -8,6 +8,9 @@ from main import app
 from app.jwt_utils import create_access_token
 from langchain_core.chat_history import InMemoryChatMessageHistory
 
+from app.chat.safety_guard import check_safety
+
+
 load_dotenv()
 
 SYSTEM_PROMPT = """You are the AI Assistant for the Workforce Intelligence Platform.
@@ -67,6 +70,17 @@ class WorkforceChatAssistant:
 
 
     async def chat(self, user_input: str) -> str:
+        # 1. Check the incoming message with the safety LLM
+        decision = await check_safety(user_input)
+        
+        # 2. Block unsafe requests
+        if decision.decision == "block":
+            return f"Request blocked: {decision.reason}"
+
+        # 3. Stop requests that need review
+        if decision.decision == "review":
+            return f"Request needs review: {decision.reason}"
+        
         self.history.add_message(HumanMessage(content=user_input))
 
         async with Client(self.mcp) as client:
