@@ -12,6 +12,7 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/workforce_test
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
 
     steps:
