@@ -72,6 +72,9 @@ class WorkforceChatAssistant:
     async def chat(self, user_input: str) -> str:
         # 1. Check the incoming message with the safety LLM
         decision = await check_safety(user_input)
+
+        print("SAFETY CHECK:", user_input)
+        print("SAFETY DECISION:", decision.decision)
         
         # 2. Block unsafe requests
         if decision.decision == "block":
