@@ -18,27 +18,15 @@ You have access to backend system tools to query projects, tasks, and employees.
 Always use tools when you need to view or modify live platform data.
 If an action requires multiple steps (such as looking up information before performing an action), execute them sequentially."""
 
-ALLOWED_TOOL_NAMES = {
-                "get_me_auth_me_get",
-                "list_employees_employees",
-                "get_employee_employees",
-                "get_employee_skills_employees",
-                "get_employee_workload_employees",
-                "get_employee_availability_employees",
-
-                "list_projects_projects",
-                "get_project_projects",
-
-                "list_tasks_for_project_tasks_project",
-                "get_task_tasks",
-
-                "get_recommendations_workflow_agent_recommendations_post",
-
-                "list_assignments_assignments",
-                "create_assignment_assignments",
-                "approve_assignment_assignments_approve_post",
-                "reject_assignment_assignments_reject_post",
-                }
+BLOCKED_TOOL_NAMES = {
+    # Add tools you don't want the LLM to use
+    "register_auth_register_post",
+    "login_auth_login_post",
+    "list_users_auth_users_get",
+    "manager_dashboard_auth_manager_only_get",
+    "root__get",
+    "health_check_health_get",
+}
 
 class WorkforceChatAssistant:
     def __init__(self, user_id: int = 1, role: str = "manager"):
@@ -90,7 +78,7 @@ class WorkforceChatAssistant:
             # 1. Fetch available tools from FastMCP
             mcp_tools = await client.list_tools()
 
-            mcp_tools = [tool for tool in mcp_tools if tool.name in ALLOWED_TOOL_NAMES]
+            mcp_tools = [tool for tool in mcp_tools if tool.name not in BLOCKED_TOOL_NAMES]
             
             # FIX: Read .input_schema directly to prevent FastMCPDeprecationWarning
             formatted_tools = [
