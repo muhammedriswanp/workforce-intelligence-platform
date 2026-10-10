@@ -10,10 +10,11 @@ PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "workforce-policies")
 
 embeddings = FastEmbedEmbeddings(model_name="BAAI/bge-small-en-v1.5")
 
-def get_vector_store() -> PineconeVectorStore:
+def get_vector_store(namespace: str | None = None) -> PineconeVectorStore:
     return PineconeVectorStore(
         index_name=PINECONE_INDEX_NAME,
         embedding=embeddings,
         pinecone_api_key=PINECONE_API_KEY,
+        namespace=namespace,
     )
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi import APIRouter, status, Depends, HTTPException, BackgroundTasks
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -6,6 +6,7 @@ from app.database import SessionLocal
 from app.auth.dependencies import get_current_user
 from app.models import Employee, Assignment, SprintUpdate
 from app.sprint_updates.schemas import SprintUpdateCreate, SprintUpdateResponse
+from app.sprint_updates.vector_service import index_sprint_update
 
 router = APIRouter(prefix="/sprint-updates", tags=["Sprint Updates"])
 
@@ -21,6 +22,7 @@ def get_db():
 @router.post("/", response_model=SprintUpdateResponse, status_code=status.HTTP_201_CREATED)
 def create_sprint_update(
     data: SprintUpdateCreate,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
@@ -57,4 +59,14 @@ def create_sprint_update(
     db.add(update)
     db.commit()
     db.refresh(update)
+
+    background_tasks.add_task(
+        index_sprint_update,
+        update.id,
+        employee.id,
+        update.task_id,
+        update.update_text,
+        update.created_at,
+    )
+
     return update
