@@ -107,3 +107,15 @@ else:
         )
     else:
         st.caption("You have no assignments yet.")
+
+    st.markdown("")
+    section_title("Sprint updates")
+    st.caption(
+        "Share progress and blockers on your active tasks. Managers can use these "
+        "updates when recommending people for future work."
+    )
+    st.page_link(
+        "pages/3_Sprint_Updates.py",
+        label="📝 &nbsp; Post a sprint update",
+        use_container_width=True,
+    )

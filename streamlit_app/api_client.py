@@ -151,6 +151,10 @@ def employee_lookup():
     return {e["id"]: e for e in get_employees()}
 
 
+def create_sprint_update(task_id, update_text):
+    return api_post("/sprint-updates/", {"task_id": task_id, "update_text": update_text})
+
+
 def analyze_task(description):
     return api_post("/ai/analyze-task", {"description": description})
 

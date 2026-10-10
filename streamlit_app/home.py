@@ -173,11 +173,13 @@ else:
 
             st.markdown("")
             section_title("Quick actions")
-            q1, q2 = st.columns(2, gap="small")
+            q1, q2, q3 = st.columns(3, gap="small")
             with q1:
                 st.page_link("pages/1_My_Workspace.py", label="🏠 &nbsp; My workspace", use_container_width=True)
             with q2:
                 st.page_link("pages/2_View_Tasks.py", label="✅ &nbsp; View tasks", use_container_width=True)
+            with q3:
+                st.page_link("pages/3_Sprint_Updates.py", label="📝 &nbsp; Update sprint", use_container_width=True)
 
             st.markdown("")
             section_title("What you can do")
