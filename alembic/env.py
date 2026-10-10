@@ -9,6 +9,7 @@ from app.database import Base
 from app.models.employee import Employee, EmployeeSkill
 from app.models.user import User
 from app.models.skill import Skill
+from app.models.sprint_update import SprintUpdate
 
 from dotenv import load_dotenv
 import os
