@@ -343,6 +343,7 @@ def build_nav():
             ("1_My_Workspace.py", "My Workspace"),
             ("2_View_Tasks.py", "View Tasks"),
             ("3_Sprint_Updates.py", "Sprint Updates"),
+            ("4_Employee_Chat.py", "AI Assistant"),
         ]
     else:
         links = []

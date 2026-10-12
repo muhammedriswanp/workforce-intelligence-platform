@@ -119,3 +119,15 @@ else:
         label="📝 &nbsp; Post a sprint update",
         use_container_width=True,
     )
+
+    st.markdown("")
+    section_title("AI Assistant")
+    st.caption(
+        "Ask about your active tasks, project details and company policies. "
+        "The assistant can only see your own tasks."
+    )
+    st.page_link(
+        "pages/4_Employee_Chat.py",
+        label="💬 &nbsp; Ask the assistant",
+        use_container_width=True,
+    )

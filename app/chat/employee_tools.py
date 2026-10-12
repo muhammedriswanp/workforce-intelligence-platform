@@ -36,7 +36,7 @@ def build_employee_tools(employee_id: int):
     @tool
     def search_policies(query: str) -> str:
         """Search company policies, role guidelines and project standards."""
-        results = retrieve_relevant_policies(query, k=3)
+        results = retrieve_relevant_policies(query, k=6)
         if not results:
             return "No matching policy found."
         return "\n".join(f"- {text.lstrip('- ').strip()}" for text in results)

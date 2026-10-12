@@ -1,0 +1,8 @@
+- Annual Leave: Every full-time employee gets 18 days of paid annual leave per calendar year. Leave must be requested at least 3 working days in advance through the reporting manager.
+- Sick Leave: Employees get 8 paid sick days per year. A medical certificate is required when the absence is longer than 2 consecutive days.
+- Leave Approval: Leave requests are approved by the reporting manager. Leave longer than 5 consecutive days must be requested at least 2 weeks in advance.
+- Leave Carry Forward: Up to 5 unused annual leave days can be carried forward to the next calendar year.
+- Remote Work Eligibility: Employees may work remotely up to 2 days per week with their manager's approval.
+- Remote Work Availability: Remote employees must be reachable during core hours from 11:00 to 16:00 and attend all scheduled team meetings.
+- Remote Work Security: Company data must only be accessed from approved devices over the company VPN. Credentials must never be shared.
+- Sprint Updates: Employees must post a sprint update on each assigned task at least once a week, including progress and any blockers.
