@@ -179,6 +179,13 @@ with match_col:
                         text=f"Match Score: {cand.get('match_score')}%",
                     )
                     st.write(f"💡 **AI Rationale:** {cand.get('reason', 'N/A')}")
+                    updates = cand.get("recent_updates") or []
+                    if updates:
+                        with st.expander(f"📝 Recent sprint updates ({len(updates)})", expanded=False):
+                            for u in updates:
+                                st.text(u)
+                    else:
+                        st.caption("No recent sprint updates.")
                     st.caption(
                         f"Weekly Capacity: {cand.get('weekly_capacity')}h | "
                         f"Current Workload: {cand.get('current_workload')}h | "

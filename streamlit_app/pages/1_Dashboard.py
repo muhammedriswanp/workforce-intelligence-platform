@@ -79,8 +79,8 @@ for e in employees:
     status = wl.get("status")
     if status == "overloaded":
         alerts.append(("danger", f"🛑", f"#{e['id']} {display_name(e)} is overloaded at {wl['workload_percentage']}%"))
-    elif status == "optimal":
-        alerts.append(("warn", "⚠️", f"#{e['id']} {display_name(e)} is optimally loaded at {wl['workload_percentage']}%"))
+    elif status == "high":
+        alerts.append(("warn", "⚠️", f"#{e['id']} {display_name(e)} is highly loaded at {wl['workload_percentage']}% (above the 80% policy limit)"))
 if not alerts and employees:
     st.success("Everyone is comfortably under capacity right now.")
 

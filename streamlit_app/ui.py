@@ -11,6 +11,7 @@ PILL_PALETTE = {
     "cancelled": ("#fca5a5", "#7f1d1d"),
     "underloaded": ("#6ee7b7", "#064e3b"),
     "optimal": ("#fcd34d", "#78350f"),
+    "high": ("#fdba74", "#7c2d12"),
     "overloaded": ("#fca5a5", "#7f1d1d"),
     "manager": ("#c4b5fd", "#4c1d95"),
     "employee": ("#93c5fd", "#1e3a8a"),
@@ -26,6 +27,7 @@ ACCENTS = {
     "amber": "#fbbf24",
     "green": "#34d399",
     "rose": "#fb7185",
+    "orange": "#fb923c",
 }
 
 

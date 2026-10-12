@@ -14,7 +14,7 @@ employees = get_employees()
 
 page_header("🧑‍💼", "Employees", "Profiles, skills, workload and availability")
 
-counts = {"underloaded": 0, "optimal": 0, "overloaded": 0}
+counts = {"underloaded": 0, "optimal": 0, "high": 0, "overloaded": 0}
 status_details = {}
 for e in employees:
     wl = get_workload(e["id"])
@@ -22,14 +22,16 @@ for e in employees:
     counts[status] = counts.get(status, 0) + 1
     status_details[e["id"]] = wl
 
-c1, c2, c3, c4 = st.columns(4, gap="small")
+c1, c2, c3, c4, c5 = st.columns(5, gap="small")
 with c1:
     kpi(len(employees), "Total", icon="🧑‍💼", accent="blue")
 with c2:
     kpi(counts["underloaded"], "Underloaded", sub="headroom available", icon="🟢", accent="green")
 with c3:
-    kpi(counts["optimal"], "Optimal", sub="70–100% loaded", icon="🟠", accent="amber")
+    kpi(counts["optimal"], "Optimal", sub="50-80% loaded", icon="🟠", accent="amber")
 with c4:
+    kpi(counts["high"], "High", sub="above 80% loaded", icon="🟠", accent="orange")
+with c5:
     kpi(counts["overloaded"], "Overloaded", sub="over capacity", icon="🔴", accent="rose")
 
 st.markdown("")
