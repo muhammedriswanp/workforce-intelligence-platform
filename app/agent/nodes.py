@@ -5,6 +5,7 @@ from sqlalchemy import select
 from app.models import Employee, User, Skill, EmployeeSkill
 from app.rag.retriever import retrieve_relevant_policies
 from app.ai.llm_reasoning import generate_recommendation_explanation
+from app.sprint_updates.retriever import get_recent_sprint_updates
 
 # Node 1: Task Analyzer
 def task_analyzer_node(state: AgentState) -> dict:
@@ -129,6 +130,21 @@ def candidate_ranking_node(state: AgentState) -> dict:
     candidates.sort(key=lambda x: x["match_score"], reverse=True)
     return {"scored_candidates": candidates[:3]}
 
+# Node 7b: Sprint Context Retriever
+def sprint_context_node(state: AgentState) -> dict:
+    """Fetches each top candidate's recent sprint updates from Pinecone."""
+    query = (
+        f"{state.get('task_description', '')} "
+        f"{' '.join(state.get('required_skills', []))}"
+    ).strip()[:500]
+
+    context = {}
+    for cand in state.get("scored_candidates", []):
+        context[cand["employee_id"]] = get_recent_sprint_updates(
+            cand["employee_id"], query
+        )
+    return {"sprint_context": context}
+
 # Node 8: Recommendation (Explanation Generation)
 def recommendation_node(state: AgentState) -> dict:
     """Uses LLM reasoning to explain top candidate recommendations."""
@@ -136,6 +152,7 @@ def recommendation_node(state: AgentState) -> dict:
     top_candidates = state.get("scored_candidates", [])
 
     for cand in top_candidates:
+        sprint_updates = state.get("sprint_context", {}).get(cand["employee_id"], [])
         reason = generate_recommendation_explanation(
             candidate_name=cand["name"],
             designation=cand["designation"],
@@ -148,6 +165,7 @@ def recommendation_node(state: AgentState) -> dict:
             task_skills=state.get("required_skills", []),
             task_complexity=state.get("complexity", ""),
             policy_context=state.get("policy_context", ""),
+            sprint_updates=sprint_updates
         )
 
         final_recs.append({
@@ -161,6 +179,7 @@ def recommendation_node(state: AgentState) -> dict:
             "current_workload": cand["current_workload"],
             "available_hours": cand["available_hours"],
             "reason": reason,
+            "recent_updates": sprint_updates,
         })
 
     return {"final_recommendations": final_recs}

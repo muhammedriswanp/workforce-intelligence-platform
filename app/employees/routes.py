@@ -187,7 +187,9 @@ def get_employee_workload(
     # Determine status
     if workload_pct > 100:
         status_label = "overloaded"
-    elif workload_pct >= 70:
+    elif workload_pct > 80:
+        status_label = "high"
+    elif workload_pct > 50:
         status_label = "optimal"
     else:
         status_label = "underloaded"

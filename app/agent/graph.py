@@ -8,6 +8,7 @@ from app.agent.nodes import (
     workload_checker_node,
     rag_retrieval_node,
     candidate_ranking_node,
+    sprint_context_node,
     recommendation_node,
 )
 
@@ -22,6 +23,7 @@ workflow.add_node("availability_checker", availability_checker_node)
 workflow.add_node("workload_checker", workload_checker_node)
 workflow.add_node("rag_retrieval", rag_retrieval_node)
 workflow.add_node("candidate_ranking", candidate_ranking_node)
+workflow.add_node("sprint_context", sprint_context_node)
 workflow.add_node("recommendation", recommendation_node)
 
 
@@ -33,7 +35,8 @@ workflow.add_edge("skill_matcher", "availability_checker")
 workflow.add_edge("availability_checker", "workload_checker")
 workflow.add_edge("workload_checker", "rag_retrieval")
 workflow.add_edge("rag_retrieval", "candidate_ranking")
-workflow.add_edge("candidate_ranking", "recommendation")
+workflow.add_edge("candidate_ranking", "sprint_context")
+workflow.add_edge("sprint_context", "recommendation")
 workflow.add_edge("recommendation", END)
 
 # 4. Compile into an executable LangGraph app

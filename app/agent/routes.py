@@ -66,6 +66,7 @@ DO NOT use this tool for:
         "scored_candidates": [],
         "policy_context": "",
         "final_recommendations": [],
+        "sprint_context": {},
         "error": None,
     }
 

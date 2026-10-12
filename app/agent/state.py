@@ -17,6 +17,9 @@ class AgentState(TypedDict):
     # RAG
     policy_context: str
 
+    # Sprint updates of the top candidates (employee_id -> recent updates)
+    sprint_context: dict[int, list[str]]
+
     # Output
     final_recommendations: list[dict[str, Any]]
     error: str | None

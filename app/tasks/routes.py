@@ -224,6 +224,7 @@ def get_task_agent_recommendations(
         "policy_context": "",
         "final_recommendations": [],
         "error": None,
+        "sprint_context": {},
     }
 
     result = agent_graph.invoke(initial_state)
