@@ -35,7 +35,12 @@ def build_employee_tools(employee_id: int):
 
     @tool
     def search_policies(query: str) -> str:
-        """Search company policies, role guidelines and project standards."""
+        """Search company policies, role guidelines and project standards.
+
+        Pass the user's full question or topic as the query, keeping every
+        specific word they used (for example "remote work availability",
+        not just "remote work"). Do not shorten or generalize it.
+        """
         results = retrieve_relevant_policies(query, k=6)
         if not results:
             return "No matching policy found."

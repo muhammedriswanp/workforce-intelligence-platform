@@ -2,7 +2,7 @@ import streamlit as st
 from api_client import login_user, register_user, api_get
 from api_client import get_employees, get_projects, get_all_tasks, get_assignments
 from api_client import get_employee_skills, get_employee_assignments, get_workload
-from ui import apply_theme, hero, kpi, section_title, render_sidebar, status_pill, tag, display_name
+from ui import apply_theme, hero, top_nav, kpi, section_title, render_sidebar, status_pill, tag, display_name
 
 st.set_page_config(
     page_title="Workforce Intelligence Platform",
@@ -27,9 +27,22 @@ if "auth_view" not in st.session_state:
     st.session_state.auth_view = "login"
 
 if not st.session_state.token:
+    top_nav()
+
     hero(
         "Workforce Intelligence Platform",
         "AI-powered workforce, skill and workload management",
+    )
+
+    st.markdown(
+        '<div class="card" style="margin-bottom:18px;">'
+        "<b>About this platform</b>"
+        '<div style="color:#94a3b8;margin-top:6px;">'
+        "A simple tool that helps your team decide who should do which task. "
+        "It keeps track of your people, their skills and how busy they are, then "
+        "suggests the best person for the job and explains why."
+        "</div></div>",
+        unsafe_allow_html=True,
     )
 
     st.markdown(

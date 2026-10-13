@@ -190,6 +190,29 @@ def hero(title, subtitle):
     )
 
 
+def top_nav():
+    with st.container(border=True):
+        brand_col, spacer, login_col, create_col = st.columns(
+            [5, 2, 1.3, 1.7], vertical_alignment="center"
+        )
+        with brand_col:
+            st.markdown("#### 🧠 Workforce Intelligence")
+        if not st.session_state.get("token"):
+            with login_col:
+                if st.button("Login", key="topnav_login", use_container_width=True):
+                    st.session_state["auth_view"] = "login"
+                    st.rerun()
+            with create_col:
+                if st.button(
+                    "Create account",
+                    key="topnav_register",
+                    use_container_width=True,
+                    type="primary",
+                ):
+                    st.session_state["auth_view"] = "register"
+                    st.rerun()
+
+
 def page_header(emoji, title, subtitle=None):
     subtitle_html = f'<div class="card-sub">{subtitle}</div>' if subtitle else ""
     st.markdown(
