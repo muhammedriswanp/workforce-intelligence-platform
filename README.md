@@ -33,6 +33,7 @@ You do **not** need to be a programmer to use it. This README has two parts:
   - [The manual way: run it yourself](#the-manual-way-run-it-yourself)
   - [Environment variables](#environment-variables)
   - [Running the tests](#running-the-tests)
+  - [Retrieval evaluation (RAG quality)](#retrieval-evaluation-rag-quality)
   - [Red team testing (AI safety)](#red-team-testing-ai-safety)
   - [How the system is built (architecture)](#how-the-system-is-built-architecture)
   - [What happens when you press "Run AI recommendation"](#what-happens-when-you-press-run-ai-recommendation)
@@ -463,6 +464,55 @@ The test suite checks:
 automatically on GitHub Actions (`.github/workflows/ci.yml`). It installs the
 locked dependencies, runs the tests, and builds the Docker image — so broken
 changes are caught before they reach anyone.
+
+## Retrieval evaluation (RAG quality)
+
+This checks how well the policy search finds the right rule. It runs 25
+example questions (full questions and short keywords) against the policy
+knowledge base and scores the ranking.
+
+```bash
+python -m evals.run_retrieval_eval
+```
+
+- **Recall@3** — how often the correct policy appears in the top 3 results.
+- **MRR** — how high the correct policy ranks on average (1.00 = always first).
+
+**Official baseline (with the reranker in the app):**
+
+```
+ID  RANK    RR     QUESTION
+1   1       1.00   When must remote employees be reachable?
+2   1       1.00   How many days a week can I work from home?
+3   1       1.00   Can I open company data on my personal laptop?
+4   1       1.00   How many sick days do I get in a year?
+5   1       1.00   How many unused leave days can I move to next year?
+6   1       1.00   What is the maximum hours per week for one employee?
+7   1       1.00   Who can be given a PostgreSQL migration task?
+8   1       1.00   Can the AI finalize an assignment without a manager?
+9   1       1.00   What skills does a frontend engineer need?
+10  1       1.00   How many projects can one employee work on at the same time?
+11  1       1.00   remote work hours
+12  1       1.00   core hours
+13  1       1.00   VPN
+14  1       1.00   who approves leave
+15  1       1.00   how early to request long leave
+16  1       1.00   can a junior do authentication changes
+17  1       1.00   employee missing skills training time
+18  1       1.00   weekly progress report on tasks
+19  1       1.00   docker and CI/CD responsibilities
+20  1       1.00   can a new hire take the database migration
+21  1       1.00   is it ok to take a month off
+22  1       1.00   someone is overloaded, can they take one more task
+23  1       1.00   can I work from a coffee shop
+24  1       1.00   who should build the login feature
+25  1       1.00   what happens if I skip the weekly update
+
+Recall@3: 1.00
+MRR:       1.00
+```
+
+All 25 questions returned the correct policy at rank 1.
 
 ## Red team testing (AI safety)
 

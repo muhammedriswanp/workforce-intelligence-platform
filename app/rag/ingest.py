@@ -30,7 +30,11 @@ def ingest_knowledge_base(reset: bool = False):
             continue
 
         with open(filepath, "r", encoding="utf-8") as f:
-            lines = [line.strip() for line in f if line.strip()]
+            lines = lines = [
+                line.strip()
+                for line in f
+                if line.strip().startswith("- ")
+            ]
 
         for line in lines:
             documents.append(

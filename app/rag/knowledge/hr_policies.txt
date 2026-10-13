@@ -5,4 +5,5 @@
 - Remote Work Eligibility: Employees may work remotely up to 2 days per week with their manager's approval.
 - Remote Work Availability: Remote employees must be reachable during core hours from 11:00 to 16:00 and attend all scheduled team meetings.
 - Remote Work Security: Company data must only be accessed from approved devices over the company VPN. Credentials must never be shared.
+- Public Places: Do not work on company data from public places such as cafes or over public Wi-Fi. Use only approved devices over the company VPN.
 - Sprint Updates: Employees must post a sprint update on each assigned task at least once a week, including progress and any blockers.
