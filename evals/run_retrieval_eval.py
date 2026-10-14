@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-
+import sys
 from app.rag.retriever import retrieve_relevant_policies
 from evals.metrics import find_rank, recall_at_k, reciprocal_rank
 
@@ -26,9 +26,11 @@ def main():
         print(f"{item['id']:<4}{str(shown_rank):<8}{rrs[-1]:<7.2f}{item['question']}")
 
     print()
-    print(f"Recall@{K}: {sum(recalls) / len(recalls):.2f}")
-    print(f"MRR:       {sum(rrs) / len(rrs):.2f}")
+    recall = sum(recalls) / len(recalls)
+    mrr = sum(rrs) / len(rrs)
+    print(f"Recall@{K}: {recall:.2f}")
+    print(f"MRR:       {mrr:.2f}")
 
-
-if __name__ == "__main__":
-    main()
+    if recall < 0.90 or mrr < 0.90:
+        print("FAILED: retrieval quality dropped below the threshold")
+        sys.exit(1)

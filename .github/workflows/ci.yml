@@ -36,3 +36,21 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t workforce-api:test .
+        
+  retrieval-eval:
+    runs-on: ubuntu-latest
+
+    env:
+      PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+      PINECONE_INDEX_NAME: ${{ secrets.PINECONE_INDEX_NAME }}
+      LANGSMITH_TRACING: "false"
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv python install 3.11
+      - run: uv sync --frozen
+      - name: Disable Guardrails metrics
+        run: printf 'enable_metrics=false\n' > ~/.guardrailsrc
+      - name: Run retrieval eval
+        run: uv run python -m evals.run_retrieval_eval

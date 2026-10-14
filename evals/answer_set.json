@@ -1,0 +1,10 @@
+[
+  {"id": 1, "question": "When must remote employees be reachable?", "facts": ["11:00", "16:00"]},
+  {"id": 2, "question": "How many days a week can I work from home?", "facts": ["2 days|two days", "approval"]},
+  {"id": 3, "question": "How many sick days do I get in a year?", "facts": ["8"]},
+  {"id": 4, "question": "How many unused leave days can I move to next year?", "facts": ["5|five"]},
+  {"id": 5, "question": "What is the maximum hours per week for one employee?", "facts": ["40"]},
+  {"id": 6, "question": "Who can be given a PostgreSQL migration task?", "facts": ["senior", "3 years|three years"]},
+  {"id": 7, "question": "How early must I request leave longer than 5 days?", "facts": ["2 weeks|two weeks"]},
+  {"id": 8, "question": "Can I work from a coffee shop?", "facts": ["public", "vpn|approved"]}
+]
